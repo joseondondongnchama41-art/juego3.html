@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>JOSE FC 26 - REGATES</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0a1a2e;color:#fff;font-family:Arial;overflow:hidden}
+#top{background:#111827;padding:6px 10px;display:flex;justify-content:space-between;font-weight:900}
+#top select{padding:6px;border-radius:8px;font-weight:900}
+canvas{display:block;width:100vw;height:52vh;background:#22a34a}
+#msg{text-align:center;color:#facc15;font-weight:900;padding:4px;min-height:22px}
+#controls{display:flex;justify-content:space-between;padding:6px 10px;gap:8px}
+#joy{width:110px;height:110px;border-radius:50%;background:#1f2937;border:3px solid #fff;position:relative;touch-action:none;flex-shrink:0}
+#stick{width:48px;height:48px;border-radius:50%;background:#facc15;position:absolute;left:31px;top:31px}
+.btns{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+button{border:0;border-radius:12px;padding:10px 12px;font-weight:900;font-size:13px;color:#fff}
+#pasar{background:#3b82f6}#chutar{background:#ef4444}
+.reg{background:#7c3aed}.reg2{background:#059669}
+</style></head><body>
+<div id="top"><div>⚽ JOSE FC 26</div><select id="equipo"><option>Real Madrid</option><option>FC Barcelona</option><option>PSG</option><option>Man City</option><option>Guinea Ecuatorial</option></select><div>TU <span id="g1">0</span> - <span id="g2">0</span> RIV</div></div>
+<div id="msg">¡Gira el teléfono! Tú eres AZUL. ¡Haz regates!</div>
+<canvas id="c" width="900" height="380"></canvas>
+<div id="controls"><div id="joy"><div id="stick"></div></div>
+<div class="btns">
+<button class="reg" onclick="regate('RULETA')">🌀 RULETA</button>
+<button class="reg" onclick="regate('ELASTICA')">✨ ELÁSTICA</button>
+<button class="reg2" onclick="regate('BICICLETA')">🚲 BICICLETA</button>
+<button class="reg2" onclick="regate('TUNEL')">👖 TÚNEL</button>
+<button id="pasar">PASAR</button><button id="chutar">¡CHUTAR!</button>
+</div></div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let joyX=0,joyY=0,ball={x:450,y:190,vx:0,vy:0},g1=0,g2=0,skill="",skillT=0;
+let myTeam=[{name:"Mbappé",x:250,y:190,c:"#2563eb"},{name:"Vini",x:180,y:100,c:"#2563eb"},{name:"Bellingham",x:180,y:280,c:"#2563eb"},{name:"Valverde",x:120,y:190,c:"#2563eb"},{name:"Courtois",x:50,y:190,c:"#facc15"}];
+let rival=[{name:"Lewy",x:650,y:190,c:"#ef4444"},{name:"Yamal",x:720,y:100,c:"#ef4444"},{name:"Pedri",x:720,y:280,c:"#ef4444"},{name:"Koundé",x:780,y:190,c:"#ef4444"},{name:"Ter Stegen",x:850,y:190,c:"#facc15"}];
+let control=0;
+function regate(tipo){skill=tipo;skillT=30;let p=myTeam[control];document.getElementById('msg').textContent="¡"+tipo+" de "+p.name+"! ¡Qué regate, José!";if(tipo==='TUNEL'){ball.x=p.x+25;ball.y=p.y;}if(tipo==='RULETA'){ball.x=p.x+20;}rival.forEach(r=>{let d=Math.hypot(r.x-p.x,r.y-p.y);if(d<80){r.x+=40;r.y+=40;}});}
+function drawPlayer(p,sel){
+ ctx.save();ctx.translate(p.x,p.y);
+ let spin=0;if(sel&&skillT>0){spin=(30-skillT)*0.3;ctx.rotate(spin);}
+ ctx.fillStyle="rgba(0,0,0,.25)";ctx.beginPath();ctx.ellipse(0,16,16,5,0,0,7);ctx.fill();
+ ctx.strokeStyle="#111";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-4,2);ctx.lineTo(-7,16);ctx.moveTo(4,2);ctx.lineTo(7,16);ctx.stroke();
+ ctx.fillStyle=p.c;ctx.fillRect(-9,-8,18,18);
+ ctx.fillStyle="#fff";ctx.font="bold 9px Arial";ctx.textAlign="center";ctx.fillText(p.name.slice(0,4),0,-12);
+ ctx.fillStyle="#fcd7b0";ctx.beginPath();ctx.arc(0,-14,8,0,7);ctx.fill();
+ ctx.fillStyle="#111";ctx.beginPath();ctx.arc(0,-17,8,0,3.14);ctx.fill();
+ if(sel){ctx.strokeStyle="#facc15";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,24,0,7);ctx.stroke();}
+ ctx.restore();
+}
+function draw(){ctx.fillStyle="#22a34a";ctx.fillRect(0,0,900,380);ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.strokeRect(20,50,860,280);ctx.beginPath();ctx.moveTo(450,50);ctx.lineTo(450,330);ctx.stroke();ctx.beginPath();ctx.arc(450,190,45,0,7);ctx.stroke();ctx.fillStyle="#fff";ctx.fillRect(20,150,20,80);ctx.fillRect(860,150,20,80);myTeam.forEach((p,i)=>drawPlayer(p,i===control));rival.forEach(p=>drawPlayer(p,false));ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(ball.x,ball.y,8,0,7);ctx.fill();ctx.fillStyle="#111";ctx.beginPath();ctx.arc(ball.x,ball.y,3,0,7);ctx.fill();}
+function update(){
+ let p=myTeam[control];let speed=4;if(skillT>0){speed=7;skillT--;if(skillT===0)skill="";}
+ p.x+=joyX*speed;p.y+=joyY*speed;p.x=Math.max(30,Math.min(870,p.x));p.y=Math.max(60,Math.min(320,p.y));
+ let d=Math.hypot(ball.x-p.x,ball.y-p.y);if(d<25){ball.x=p.x+12;ball.y=p.y+5;}
+ rival.forEach(r=>{let dx=ball.x-r.x,dy=ball.y-r.y,dd=Math.hypot(dx,dy);if(dd>1){r.x+=dx/dd*1.1;r.y+=dy/dd*1.1;}});
+ ball.x+=ball.vx;ball.y+=ball.vy;ball.vx*=0.96;ball.vy*=0.96;if(ball.y<50||ball.y>330)ball.vy*=-1;
+ if(ball.x>880){g1++;document.getElementById('g1').textContent=g1;document.getElementById('msg').textContent="¡GOOOL DE "+p.name+"!";ball.x=450;ball.y=190;ball.vx=0;ball.vy=0;}
+ if(ball.x<20){g2++;document.getElementById('g2').textContent=g2;document.getElementById('msg').textContent="Gol del rival... ¡Venga José!";ball.x=450;ball.y=190;ball.vx=0;ball.vy=0;}
+ draw();requestAnimationFrame(update);
+}
+update();
+const joy=document.getElementById('joy'),stick=document.getElementById('stick');let touching=false;
+function moveJoy(e){if(!touching)return;let r=joy.getBoundingClientRect();let t=e.touches[0];let dx=t.clientX-(r.left+55),dy=t.clientY-(r.top+55);let l=Math.hypot(dx,dy);if(l>35){dx=dx/l*35;dy=dy/l*35;}stick.style.left=(31+dx)+'px';stick.style.top=(31+dy)+'px';joyX=dx/35;joyY=dy/35;}
+joy.addEventListener('touchstart',e=>{touching=true;moveJoy(e)});joy.addEventListener('touchmove',moveJoy);joy.addEventListener('touchend',()=>{touching=false;joyX=0;joyY=0;stick.style.left='31px';stick.style.top='31px'});
+document.getElementById('pasar').onclick=()=>{control=(control+1)%4;ball.x=myTeam[control].x+12;ball.y=myTeam[control].y+5;document.getElementById('msg').textContent="Pase a "+myTeam[control].name;};
+document.getElementById('chutar').onclick=()=>{ball.vx=10;ball.vy=(Math.random()-0.5)*6;document.getElementById('msg').textContent="¡CHUT de "+myTeam[control].name+"!";};
+</script></body></html>
